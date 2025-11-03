@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片字幕生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .control-panel {
+            width: 400px;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #343a40;
+            font-weight: 600;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #6c63ff;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #6c63ff;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6c63ff 0%, #4a47a3 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+
+        .file-input-btn:hover {
+            background: linear-gradient(135deg, #5a53d9 0%, #3e3b8a 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(108, 99, 255, 0.4);
+        }
+
+        .file-name {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        input[type="number"], select, input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: white;
+        }
+
+        input[type="number"]:focus, select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        input[type="color"]:hover {
+            border-color: #6c63ff;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            flex: 2;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #43a0ff 0%, #00e5ff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #f86291 0%, #ffdb2d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(250, 112, 154, 0.3);
+        }
+
+        .preview-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            padding: 30px;
+            text-align: center;
+            max-width: 90%;
+            width: 100%;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2c7a7b;
+            border-left: 4px solid #2c7a7b;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+
+        .no-image {
+            width: 400px;
+            height: 300px;
+            border: 2px dashed #adb5bd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 18px;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .no-image:hover {
+            border-color: #6c63ff;
+            color: #6c63ff;
+            background-color: #f1f0ff;
+        }
+
+        /* 滚动条样式美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #6c63ff;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5a53d9;
+        }
+        
+        /* 滑块样式 */
+        .range-slider {
+            width: 70%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            transition: background 0.3s;
+        }
+        
+        .range-slider:hover {
+            background: #ccc;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #5a53d9;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #4a43c9;
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #5a53d9;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        
+        .range-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: #4a43c9;
+        }
+
+        /* 响应式设计优化 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .control-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .preview-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <h1>图片字幕生成器</h1>
+            
+            <div class="section">
+                <div class="section-title">图片上传</div>
+                <div class="form-group">
+                    <input type="file" id="imageInput" accept="image/*">
+                    <button class="file-input-btn" onclick="document.getElementById('imageInput').click()">选择图片</button>
+                    <span class="file-name" id="fileName">未选择文件</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">字幕样式设置</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subtitlePosition">字幕位置</label>
+                        <select id="subtitlePosition">
+                            <option value="bottom">图片下方</option>
+                            <option value="bottom-inside">图片底部内部</option>
+                            <option value="top-inside">图片顶部内部</option>
+                            <option value="center-inside">图片中心内部</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitleOffset">位置偏移 (px)</label>
+                        <input type="number" id="subtitleOffset" value="20" min="0" max="300">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subtitleHeight">字幕高度 (px)</label>
+                        <input type="number" id="subtitleHeight" value="80" min="20" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="fontSize">字体大小 (px)</label>
+                        <input type="number" id="fontSize" value="40" min="12" max="72">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subtitleBackground">字幕背景</label>
+                        <select id="subtitleBackground">
+                            <option value="pixel">使用图片底部像素</option>
+                            <option value="solid">纯色背景</option>
+                            <option value="transparent">透明背景</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="backgroundColor">背景颜色</label>
+                        <input type="color" id="backgroundColor" value="#000000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fontColor">字体颜色</label>
+                        <input type="color" id="fontColor" value="#FFFFFF">
+                    </div>
+                    <div class="form-group">
+                        <label for="strokeColor">轮廓颜色</label>
+                        <input type="color" id="strokeColor" value="#000000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fontFamily">字体样式</label>
+                        <select id="fontFamily">
+                            <option value="Microsoft YaHei">微软雅黑</option>
+                            <option value="SimSun">宋体</option>
+                            <option value="SimHei">黑体</option>
+                            <option value="KaiTi">楷体</option>
+                            <option value="FangSong">仿宋</option>
+                            <option value="LiSu">隶书</option>
+                            <option value="YouYuan">幼圆</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Impact">Impact</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                            <option value="Trebuchet MS">Trebuchet MS</option>
+                            <option value="Courier New">Courier New</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fontWeight">字体粗细</label>
+                        <select id="fontWeight">
+                            <option value="normal">正常</option>
+                            <option value="bold">加粗</option>
+                            <option value="lighter">细体</option>
+                            <option value="100">100 - 特细</option>
+                            <option value="200">200 - 很细</option>
+                            <option value="300">300 - 细</option>
+                            <option value="400">400 - 正常</option>
+                            <option value="500">500 - 中等</option>
+                            <option value="600">600 - 半粗</option>
+                            <option value="700">700 - 粗体</option>
+                            <option value="800">800 - 很粗</option>
+                            <option value="900">900 - 特粗</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">字幕内容</div>
+                <div class="form-group">
+                    <label for="subtitleText">字幕内容（每行文本将作为独立的字幕行显示）</label>
+                    <textarea id="subtitleText" placeholder="请输入字幕内容，每行将作为独立的字幕行"></textarea>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">水印设置</div>
+                <div class="form-group">
+                    <label for="watermarkToggle">启用水印</label>
+                    <select id="watermarkToggle">
+                        <option value="false">关闭</option>
+                        <option value="true">开启</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="watermarkMode">水印模式</label>
+                    <select id="watermarkMode">
+                        <option value="single">单水印</option>
+                        <option value="tiled">平铺水印</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="watermarkText">水印文本</label>
+                    <input type="text" id="watermarkText" value="水印" placeholder="请输入水印文本">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="watermarkPosition">水印位置（单水印模式）</label>
+                        <select id="watermarkPosition">
+                            <option value="top-left">左上</option>
+                            <option value="top-right">右上</option>
+                            <option value="bottom-left">左下</option>
+                            <option value="bottom-right">右下</option>
+                            <option value="center">中心</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="watermarkSize">水印大小 (px)</label>
+                        <input type="number" id="watermarkSize" value="30" min="12" max="100">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="watermarkOpacity">水印透明度 (0-100)</label>
+                        <input type="number" id="watermarkOpacity" value="30" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="watermarkRotation">旋转角度 (度)</label>
+                        <input type="number" id="watermarkRotation" value="45" min="0" max="360">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="watermarkSpacing">水印间距 (px) - 控制密集程度</label>
+                        <input type="number" id="watermarkSpacing" value="100" min="50" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="watermarkColor">水印颜色</label>
+                        <input type="color" id="watermarkColor" value="#FFFFFF">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="generateSubtitleImage()">生成字幕图片</button>
+                <button class="btn-secondary" onclick="saveImage()">保存图片</button>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="preview-panel">
+            <h2>预览</h2>
+            <div class="preview-container">
+                <div id="noImage" class="no-image">请上传图片</div>
+                <canvas id="previewCanvas" style="display: none;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let processedImage = null;
+        let bottomPixelRow = null;
+
+        // 图片上传处理
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImage = img;
+                        
+                        // 只有在需要时才提取底部像素
+                        const subtitleBackground = document.getElementById('subtitleBackground')?.value || 'pixel';
+                        const subtitlePosition = document.getElementById('subtitlePosition')?.value || 'bottom';
+                        if (subtitleBackground === 'pixel' && subtitlePosition === 'bottom') {
+                            extractBottomPixelRow();
+                        }
+                        
+                        updatePreview();
+                        showStatus('图片上传成功', 'success');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // 监听字幕背景类型变化
+        document.getElementById('subtitleBackground')?.addEventListener('change', function() {
+            // 当选择纯色背景时，可以在这里添加额外逻辑
+        });
+        
+        // 初始化时创建必要的元素（如果不存在）
+        function initExtraElements() {
+            // 如果subtitlePosition元素不存在，创建它
+            if (!document.getElementById('subtitlePosition')) {
+                const container = document.createElement('div');
+                container.className = 'form-row';
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label for="subtitlePosition">字幕位置</label>
+                        <select id="subtitlePosition">
+                            <option value="bottom">图片下方</option>
+                            <option value="bottom-inside">图片底部内部</option>
+                            <option value="top-inside">图片顶部内部</option>
+                            <option value="center-inside">图片中心内部</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitleOffset">位置偏移 (px)</label>
+                        <input type="number" id="subtitleOffset" value="20" min="0" max="300">
+                    </div>
+                `;
+                
+                const subtitleHeightGroup = document.querySelector('label[for="subtitleHeight"]').closest('.form-row');
+                subtitleHeightGroup.parentNode.insertBefore(container, subtitleHeightGroup);
+            }
+            
+            // 如果subtitleBackground元素不存在，创建它
+            if (!document.getElementById('subtitleBackground')) {
+                const container = document.createElement('div');
+                container.className = 'form-row';
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label for="subtitleBackground">字幕背景</label>
+                        <select id="subtitleBackground">
+                            <option value="pixel">使用图片底部像素</option>
+                            <option value="solid">纯色背景</option>
+                            <option value="transparent">透明背景</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="backgroundColor">背景颜色</label>
+                        <input type="color" id="backgroundColor" value="#000000">
+                    </div>
+                `;
+                
+                const fontSizeGroup = document.querySelector('label[for="fontSize"]').closest('.form-row');
+                fontSizeGroup.parentNode.insertBefore(container, fontSizeGroup.nextSibling);
+            }
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('load', function() {
+            initExtraElements();
+            
+            // 监听所有输入变化以更新预览
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+        });
+
+        // 提取底部一行像素
+        function extractBottomPixelRow() {
+            if (!originalImage) return;
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = originalImage.width;
+            canvas.height = originalImage.height;
+            
+            ctx.drawImage(originalImage, 0, 0);
+            const imageData = ctx.getImageData(0, originalImage.height - 1, originalImage.width, 1);
+            bottomPixelRow = imageData;
+        }
+
+        // 更新预览
+        function updatePreview() {
+            if (!originalImage) return;
+            
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const subtitleHeight = parseInt(document.getElementById('subtitleHeight').value);
+            const subtitleText = document.getElementById('subtitleText').value.trim();
+            const subtitleLines = subtitleText ? subtitleText.split('\n').filter(line => line.trim()) : [];
+            const subtitlePosition = document.getElementById('subtitlePosition').value || 'bottom';
+            
+            // 根据字幕位置决定画布大小
+            let canvasWidth = originalImage.width;
+            let canvasHeight = originalImage.height;
+            
+            // 如果字幕在图片下方，扩展画布高度
+            if (subtitlePosition === 'bottom') {
+                canvasHeight = originalImage.height + (subtitleLines.length * subtitleHeight);
+            }
+            
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            // 绘制原图
+            ctx.drawImage(originalImage, 0, 0);
+            
+            // 绘制字幕
+            if (subtitleLines.length > 0) {
+                drawSubtitles(ctx, subtitleLines, subtitleHeight);
+            }
+            
+            // 绘制水印
+            drawWatermark(ctx, canvas);
+            
+            document.getElementById('noImage').style.display = 'none';
+            document.getElementById('previewCanvas').style.display = 'block';
+            processedImage = canvas;
+        }
+
+        // 绘制字幕
+        function drawSubtitles(ctx, lines, subtitleHeight) {
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const fontColor = document.getElementById('fontColor').value.toUpperCase();
+            const strokeColor = document.getElementById('strokeColor').value.toUpperCase();
+            const fontFamily = document.getElementById('fontFamily').value;
+            const fontWeight = document.getElementById('fontWeight').value;
+            const subtitlePosition = document.getElementById('subtitlePosition').value || 'bottom';
+            const subtitleOffset = parseInt(document.getElementById('subtitleOffset').value) || 20;
+            const subtitleBackground = document.getElementById('subtitleBackground')?.value || 'pixel';
+            const backgroundColor = document.getElementById('backgroundColor')?.value || '#000000';
+            
+            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 计算总字幕区域高度
+            const totalSubtitleHeight = lines.length * subtitleHeight;
+            
+            // 根据位置计算起始Y坐标
+            let startY = 0;
+            switch (subtitlePosition) {
+                case 'bottom':
+                    startY = originalImage.height;
+                    break;
+                case 'bottom-inside':
+                    startY = originalImage.height - totalSubtitleHeight - subtitleOffset;
+                    break;
+                case 'top-inside':
+                    startY = subtitleOffset;
+                    break;
+                case 'center-inside':
+                    startY = (originalImage.height - totalSubtitleHeight) / 2;
+                    break;
+            }
+            
+            for (let i = 0; i < lines.length; i++) {
+                const y = startY + (i * subtitleHeight) + (subtitleHeight / 2);
+                const lineY = startY + (i * subtitleHeight);
+                
+                // 绘制字幕背景
+                ctx.save();
+                if (subtitleBackground === 'pixel' && bottomPixelRow && subtitlePosition === 'bottom') {
+                    // 传统的像素行背景（仅在图片下方时使用）
+                    ctx.putImageData(bottomPixelRow, 0, lineY);
+                } else if (subtitleBackground === 'solid') {
+                    // 纯色背景
+                    ctx.fillStyle = backgroundColor;
+                    ctx.fillRect(0, lineY, originalImage.width, subtitleHeight);
+                }
+                ctx.restore();
+                
+                // 绘制文字轮廓
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 3;
+                ctx.strokeText(lines[i], originalImage.width / 2, y);
+                
+                // 绘制文字
+                ctx.fillStyle = fontColor;
+                ctx.fillText(lines[i], originalImage.width / 2, y);
+            }
+        }
+
+        // 绘制水印
+        function drawWatermark(ctx, canvas) {
+            const enableWatermark = document.getElementById('watermarkToggle').value === 'true';
+            if (!enableWatermark) return;
+            
+            const watermarkText = document.getElementById('watermarkText').value.trim();
+            if (!watermarkText) return;
+            
+            const fontSize = parseInt(document.getElementById('watermarkSize').value);
+            const opacity = parseInt(document.getElementById('watermarkOpacity').value) / 100; // 修复: 添加.value
+            const rotation = parseInt(document.getElementById('watermarkRotation').value); // 修复: 添加.value
+            const position = document.getElementById('watermarkPosition').value;
+            const color = document.getElementById('watermarkColor').value.toUpperCase();
+            const fontFamily = document.getElementById('fontFamily').value;
+            const mode = document.getElementById('watermarkMode').value;
+            const spacing = parseInt(document.getElementById('watermarkSpacing').value); // 修复: 添加.value
+            
+            ctx.save();
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.fillStyle = color;
+            ctx.globalAlpha = opacity;
+            
+            if (mode === 'single') {
+                // 单水印模式
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 设置文本位置
+                let x = canvas.width / 2;
+                let y = canvas.height / 2;
+                
+                switch (position) {
+                    case 'top-left':
+                        x = canvas.width * 0.1;
+                        y = canvas.height * 0.1;
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'top';
+                        break;
+                    case 'top-right':
+                        x = canvas.width * 0.9;
+                        y = canvas.height * 0.1;
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'top';
+                        break;
+                    case 'bottom-left':
+                        x = canvas.width * 0.1;
+                        y = canvas.height * 0.9;
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'bottom';
+                        break;
+                    case 'bottom-right':
+                        x = canvas.width * 0.9;
+                        y = canvas.height * 0.9;
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'bottom';
+                        break;
+                }
+                
+                // 应用旋转
+                if (rotation !== 0) {
+                    ctx.translate(x, y);
+                    ctx.rotate((rotation * Math.PI) / 180);
+                    ctx.translate(-x, -y);
+                }
+                
+                ctx.fillText(watermarkText, x, y);
+            } else {
+                // 平铺水印模式 - 完整重写
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 计算文本的实际尺寸
+                const textMetrics = ctx.measureText(watermarkText);
+                const textWidth = textMetrics.width;
+                const textHeight = fontSize * 1.2; // 估算文本高度
+                
+                // 计算水印间距，确保水印密度合适
+                const watermarkSpacing = Math.max(spacing, 50); // 最小间距50px
+                
+                // 计算旋转后的覆盖范围
+                const diagonal = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
+                const startX = -watermarkSpacing;
+                const startY = -watermarkSpacing;
+                const endX = canvas.width + watermarkSpacing;
+                const endY = canvas.height + watermarkSpacing;
+                
+                // 为了更好的平铺效果，使用交错网格
+                const staggerOffset = watermarkSpacing * 0.5;
+                
+                // 外层循环控制行
+                for (let y = startY; y < endY; y += watermarkSpacing) {
+                    // 内层循环控制列，根据行号添加交错效果
+                    const rowStartX = (y / watermarkSpacing) % 2 === 0 ? startX : startX + staggerOffset;
+                    for (let x = rowStartX; x < endX; x += watermarkSpacing) {
+                        // 保存当前状态
+                        ctx.save();
+                        
+                        // 移动到当前水印位置
+                        ctx.translate(x, y);
+                        
+                        // 应用旋转
+                        if (rotation !== 0) {
+                            ctx.rotate((rotation * Math.PI) / 180);
+                        }
+                        
+                        // 绘制水印文本（以原点为中心）
+                        ctx.fillText(watermarkText, 0, 0);
+                        
+                        // 恢复当前状态
+                        ctx.restore();
+                    }
+                }
+            }
+            
+            ctx.restore();
+        }
+
+        // 生成字幕图片
+        function generateSubtitleImage() {
+            if (!originalImage) {
+                showStatus('请先上传图片', 'error');
+                return;
+            }
+            
+            const subtitleText = document.getElementById('subtitleText').value.trim();
+            if (!subtitleText) {
+                showStatus('请输入字幕内容', 'error');
+                return;
+            }
+            
+            updatePreview();
+            showStatus('字幕图片生成成功', 'success');
+        }
+
+        // 保存图片
+        function saveImage() {
+            if (!processedImage) {
+                showStatus('请先生成字幕图片', 'error');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = '带字幕的图片.png';
+            link.href = processedImage.toDataURL();
+            link.click();
+            showStatus('图片保存成功', 'success');
+        }
+
+        // 显示状态信息
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = `status-message status-${type}`;
+            statusElement.style.display = 'block';
+            
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // 监听设置变化
+        ['subtitleHeight', 'fontSize', 'fontColor', 'strokeColor', 'fontFamily', 'fontWeight', 'subtitleText', 
+         'watermarkToggle', 'watermarkMode', 'watermarkText', 'watermarkPosition', 'watermarkSize', 'watermarkOpacity', 
+         'watermarkRotation', 'watermarkSpacing', 'watermarkColor'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                if (originalImage) {
+                    updatePreview();
+                }
+            });
+        });
+
+        // 颜色输入框监听
+        ['fontColor', 'strokeColor', 'watermarkColor'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    </script>
+</body>
+</html>
