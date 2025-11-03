@@ -4265,10 +4265,11 @@
                     coin.draw(ctx);
                 } else if (!keep && !gameOver) {
                     // 金币消失时扣除生命值
-                if (coin.type !== 'mystery' || Math.random() > 0.5) { // 神秘金币50%概率不扣血
-                    // 护盾激活时免疫生命值损失
-                    if (!powerUps.shield.active) {
-                        loseHealth(healthLossPerMiss);
+                    if (coin.type !== 'mystery' || Math.random() > 0.5) { // 神秘金币50%概率不扣血
+                        // 护盾激活时免疫生命值损失
+                        if (!powerUps.shield.active) {
+                            loseHealth(healthLossPerMiss);
+                        }
                     }
                 }
                 return keep && coin.opacity > 0;
