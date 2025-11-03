@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点击测试</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        #testCanvas { 
+            border: 2px solid #333; 
+            background: #f0f0f0; 
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+        #status { 
+            text-align: center; 
+            padding: 10px; 
+            background: #333; 
+            color: white; 
+            margin: 10px 0;
+        }
+        .click-indicator {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.7);
+            pointer-events: none;
+            animation: clickPulse 0.5s ease-out;
+        }
+        @keyframes clickPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="status">点击画布测试功能</div>
+    <canvas id="testCanvas" width="400" height="300"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const status = document.getElementById('status');
+        let clickCount = 0;
+        
+        // 绘制一些测试内容
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#4CAF50';
+        ctx.fillRect(50, 50, 100, 100);
+        ctx.fillStyle = '#2196F3';
+        ctx.fillRect(250, 150, 100, 100);
+        
+        ctx.fillStyle = '#333';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('点击测试画布', 200, 30);
+        
+        // 点击事件处理
+        canvas.addEventListener('click', function(e) {
+            clickCount++;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            status.textContent = `点击 #${clickCount} - 坐标: (${Math.round(x)}, ${Math.round(y)})`;
+            
+            // 显示点击效果
+            const indicator = document.createElement('div');
+            indicator.className = 'click-indicator';
+            indicator.style.left = (e.clientX - 10) + 'px';
+            indicator.style.top = (e.clientY - 10) + 'px';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.remove();
+            }, 500);
+            
+            // 在画布上绘制点击点
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        // 添加鼠标移动事件显示坐标
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            canvas.title = `坐标: (${Math.round(x)}, ${Math.round(y)})`;
+        });
+        
+        status.textContent = '测试画布已加载，点击任意位置测试功能';
+    </script>
+</body>
+</html>

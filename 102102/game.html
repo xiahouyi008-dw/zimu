@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏重定向</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 50px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 500px;
+        }
+        .redirect-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .redirect-button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76,175,80,0.6);
+        }
+        .fix-button {
+            background: #ff9800;
+            padding: 15px 30px;
+            font-size: 16px;
+        }
+        .fix-button:hover {
+            box-shadow: 0 6px 20px rgba(255,152,0,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 游戏访问页面</h1>
+        <p>由于中文文件名兼容性问题，请使用以下方式访问游戏：</p>
+        
+        <a href="/摸鱼金币.html" class="redirect-button">🚀 直接打开游戏</a>
+        
+        <div style="margin-top: 30px;">
+            <h3>🔧 修复工具</h3>
+            <a href="/simple_fix.html" class="redirect-button fix-button">🔧 简单修复工具</a>
+            <a href="/fix_auto.html" class="redirect-button fix-button">⚡ 自动修复工具</a>
+        </div>
+        
+        <div style="margin-top: 30px; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
+            <h3>📋 使用步骤：</h3>
+            <ol style="text-align: left;">
+                <li>点击【🔧 简单修复工具】</li>
+                <li>点击【一键修复】按钮</li>
+                <li>点击【打开游戏】按钮</li>
+                <li>在游戏中测试挑战功能</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+            <p>💡 提示：如果点击按钮无效，请手动复制地址到浏览器地址栏</p>
+        </div>
+    </div>
+    
+    <script>
+        // 自动重定向到修复工具
+        setTimeout(() => {
+            console.log('🔄 3秒后将自动跳转到修复工具页面...');
+            // window.location.href = '/simple_fix.html';
+        }, 3000);
+    </script>
+</body>
+</html>
