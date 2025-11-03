@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/摸鱼金币.html"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
