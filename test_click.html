@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>点击测试</title>
+    <style>
+        #testCanvas {
+            border: 2px solid red;
+            background: lightblue;
+            cursor: pointer;
+        }
+        #clickLog {
+            margin-top: 20px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h2>Canvas 点击测试</h2>
+    <canvas id="testCanvas" width="400" height="300"></canvas>
+    <div id="clickLog"></div>
+    
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const log = document.getElementById('clickLog');
+        let clickCount = 0;
+        
+        // 绘制一些内容
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'gold';
+        ctx.beginPath();
+        ctx.arc(200, 150, 50, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.font = '20px Arial';
+        ctx.fillText('点击我！', 170, 155);
+        
+        // 添加点击事件监听器
+        canvas.addEventListener('click', function(e) {
+            clickCount++;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            log.innerHTML += `点击 #${clickCount}: 坐标 (${Math.round(x)}, ${Math.round(y)})<br>`;
+            
+            // 在点击位置绘制一个小圆
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        log.innerHTML = '点击测试已启动，请尝试点击canvas...<br>';
+    </script>
+</body>
+</html>

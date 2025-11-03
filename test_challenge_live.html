@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时挑战测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .challenge-item { 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .challenge-item.completed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .progress-bar { 
+            width: 300px; 
+            height: 20px; 
+            background: #ddd; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            margin: 10px 0;
+        }
+        .progress-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, #28a745, #20c997); 
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+        .test-controls {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            cursor: pointer; 
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        .log { 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #f8f9fa; 
+            font-family: monospace; 
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 摸鱼金币挑战系统测试</h1>
+        
+        <div class="test-controls">
+            <h3>🧪 测试控制</h3>
+            <button onclick="simulateCoinClick()">🪙 模拟金币点击</button>
+            <button onclick="resetChallenge()">🔄 重置挑战</button>
+            <button onclick="checkChallengeData()">📊 检查数据</button>
+            <button onclick="clearLogs()">🗑️ 清空日志</button>
+            <button onclick="forceUpdateChallenge()">⚡ 强制更新挑战</button>
+        </div>
+
+        <div id="statusMessage"></div>
+        
+        <div class="test-section">
+            <h3>📈 挑战状态</h3>
+            <div id="challengeStatus">
+                <div class="status info">正在初始化挑战系统...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 实时日志</h3>
+            <div id="consoleLog" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💾 本地存储数据</h3>
+            <div id="localStorageData" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟挑战系统
+        let dailyChallenges = [];
+        let totalClicks = 0;
+        let isInitialized = false;
+        
+        const CHALLENGES = [
+            {
+                id: 'click_100',
+                title: '摸鱼新手',
+                description: '点击金币达到100次',
+                icon: '🎯',
+                target: 100,
+                reward: 500,
+                type: 'click'
+            }
+        ];
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('consoleLog');
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'black';
+            logDiv.innerHTML += `<div style="color: ${color}">[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollTop;
+            console.log(`[${time}] ${message}`);
+        }
+
+        // 显示状态消息
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 初始化挑战
+        function initTestChallenges() {
+            log('正在初始化挑战系统...');
+            
+            try {
+                const savedChallenges = localStorage.getItem('dailyChallenges');
+                const lastUpdate = localStorage.getItem('dailyChallengesLastUpdate');
+                
+                log(`本地存储数据: ${savedChallenges ? '存在' : '不存在'}`);
+                log(`最后更新时间: ${lastUpdate || '无'}`);
+                
+                if (savedChallenges) {
+                    dailyChallenges = JSON.parse(savedChallenges);
+                    log('已加载保存的挑战数据');
+                } else {
+                    dailyChallenges = CHALLENGES.map(challenge => ({
+                        ...challenge,
+                        progress: 0,
+                        completed: false,
+                        claimed: false
+                    }));
+                    log('已创建新的挑战数据');
+                    saveChallenges();
+                }
+                
+                isInitialized = true;
+                showStatus('挑战系统初始化成功！', 'success');
+                updateDisplay();
+                updateLocalStorageDisplay();
+                
+            } catch (error) {
+                log(`初始化失败: ${error.message}`, 'error');
+                showStatus('初始化失败: ' + error.message, 'error');
+            }
+        }
+
+        // 保存挑战数据
+        function saveChallenges() {
+            try {
+                localStorage.setItem('dailyChallenges', JSON.stringify(dailyChallenges));
+                log('挑战数据已保存到本地存储');
+            } catch (error) {
+                log(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 模拟金币点击
+        function simulateCoinClick() {
+            if (!isInitialized) {
+                showStatus('请先初始化挑战系统！', 'error');
+                return;
+            }
+            
+            totalClicks++;
+            log(`🪙 金币被点击！总点击数: ${totalClicks}`);
+            
+            try {
+                updateChallengeProgress('click', 1);
+                showStatus(`点击成功！总点击数: ${totalClicks}`, 'success');
+            } catch (error) {
+                log(`更新挑战进度失败: ${error.message}`, 'error');
+                showStatus('更新失败: ' + error.message, 'error');
+            }
+            
+            updateLocalStorageDisplay();
+        }
+
+        // 更新挑战进度
+        function updateChallengeProgress(type, value = 1) {
+            log(`尝试更新挑战进度 - 类型: ${type}, 值: ${value}`);
+            let updated = false;
+            
+            dailyChallenges.forEach(challenge => {
+                if (challenge.type === type && !challenge.completed) {
+                    log(`找到匹配挑战: ${challenge.title}, 当前进度: ${challenge.progress}`);
+                    challenge.progress += value;
+                    log(`点击挑战进度更新: ${challenge.progress}/${challenge.target}`);
+                    
+                    if (challenge.progress >= challenge.target) {
+                        challenge.completed = true;
+                        log(`🎉 挑战完成: ${challenge.title}！`, 'success');
+                        showStatus(`🎉 挑战完成: ${challenge.title}！`, 'success');
+                    }
+                    
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                saveChallenges();
+                updateDisplay();
+            } else {
+                log('没有找到匹配的挑战类型', 'error');
+            }
+        }
+
+        // 重置挑战
+        function resetChallenge() {
+            if (confirm('确定要重置所有挑战数据吗？')) {
+                localStorage.removeItem('dailyChallenges');
+                localStorage.removeItem('dailyChallengesLastUpdate');
+                totalClicks = 0;
+                initTestChallenges();
+                showStatus('挑战已重置！', 'success');
+            }
+        }
+
+        // 检查挑战数据
+        function checkChallengeData() {
+            updateLocalStorageDisplay();
+            log('当前挑战数据检查完成');
+            showStatus('数据检查完成！', 'info');
+        }
+
+        // 强制更新挑战
+        function forceUpdateChallenge() {
+            if (!isInitialized) {
+                showStatus('请先初始化挑战系统！', 'error');
+                return;
+            }
+            
+            dailyChallenges.forEach(challenge => {
+                if (challenge.type === 'click') {
+                    challenge.progress = Math.min(challenge.progress + 5, challenge.target);
+                    if (challenge.progress >= challenge.target && !challenge.completed) {
+                        challenge.completed = true;
+                        log(`🎉 挑战完成: ${challenge.title}！`, 'success');
+                    }
+                }
+            });
+            
+            saveChallenges();
+            updateDisplay();
+            showStatus('强制更新完成！', 'success');
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            const statusDiv = document.getElementById('challengeStatus');
+            
+            if (!isInitialized) {
+                statusDiv.innerHTML = '<div class="status error">挑战系统未初始化</div>';
+                return;
+            }
+            
+            if (dailyChallenges.length === 0) {
+                statusDiv.innerHTML = '<div class="status error">没有挑战数据</div>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '';
+            
+            dailyChallenges.forEach((challenge, index) => {
+                const progress = Math.min(challenge.progress / challenge.target * 100, 100);
+                const item = document.createElement('div');
+                item.className = `challenge-item ${challenge.completed ? 'completed' : ''}`;
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 24px; margin-bottom: 5px;">${challenge.icon}</div>
+                            <div style="font-weight: bold; margin-bottom: 5px;">${challenge.title}</div>
+                            <div style="color: #666; font-size: 14px; margin-bottom: 10px;">${challenge.description}</div>
+                            <div style="font-size: 12px; color: #888;">
+                                进度: ${challenge.progress}/${challenge.target} (${progress.toFixed(1)}%)
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold; color: #28a745; margin-bottom: 5px;">${challenge.reward} 金币</div>
+                            <div style="font-size: 12px; color: ${challenge.completed ? '#28a745' : '#666'};">
+                                ${challenge.completed ? '✅ 已完成' : '⏳ 进行中'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                statusDiv.appendChild(item);
+            });
+        }
+
+        // 更新本地存储显示
+        function updateLocalStorageDisplay() {
+            const dataDiv = document.getElementById('localStorageData');
+            try {
+                const savedChallenges = localStorage.getItem('dailyChallenges');
+                const lastUpdate = localStorage.getItem('dailyChallengesLastUpdate');
+                
+                dataDiv.innerHTML = `
+                    <div style="margin-bottom: 10px;"><strong>dailyChallenges:</strong></div>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 11px;">
+${savedChallenges || '无数据'}
+                    </pre>
+                    <div style="margin-top: 10px;"><strong>dailyChallengesLastUpdate:</strong></div>
+                    <div style="font-family: monospace; font-size: 12px;">${lastUpdate || '无数据'}</div>
+                    <div style="margin-top: 10px;"><strong>总点击数:</strong> ${totalClicks}</div>
+                `;
+            } catch (error) {
+                dataDiv.innerHTML = `<div style="color: red;">读取本地存储失败: ${error.message}</div>`;
+            }
+        }
+
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('consoleLog').innerHTML = '';
+            showStatus('日志已清空', 'info');
+        }
+
+        // 初始化
+        window.onload = function() {
+            log('页面加载完成，开始初始化...');
+            initTestChallenges();
+        };
+    </script>
+</body>
+</html>

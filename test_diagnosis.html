@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>挑战诊断测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .challenge { border: 2px solid #ccc; margin: 15px 0; padding: 15px; border-radius: 8px; }
+        .progress-bar { width: 300px; height: 25px; background: #f0f0f0; border-radius: 12px; overflow: hidden; margin: 10px 0; }
+        .progress { height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); width: 0%; transition: width 0.3s; }
+        button { margin: 5px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        .test-btn { background: #2196F3; color: white; }
+        .fix-btn { background: #FF9800; color: white; }
+        .status { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .problem { color: #f44336; font-weight: bold; }
+        .success { color: #4CAF50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎯 挑战诊断测试页面</h1>
+    <p>这个页面演示了所有挑战的<strong>核心问题</strong>：<span class="problem">数据更新正常，但显示不更新！</span></p>
+    
+    <div id="challenge1" class="challenge">
+        <h3>🖱️ 挑战1-摸鱼新手</h3>
+        <p>目标：点击100次金币 | 奖励：500金币</p>
+        <div class="progress-bar">
+            <div id="progress1" class="progress"></div>
+        </div>
+        <div id="progressText1">0/100</div>
+        <button id="claim1" disabled>领取</button>
+    </div>
+    
+    <div id="challenge2" class="challenge">
+        <h3>⏰ 挑战2-时间管理大师</h3>
+        <p>目标：在线30分钟 | 奖励：1000金币</p>
+        <div class="progress-bar">
+            <div id="progress2" class="progress"></div>
+        </div>
+        <div id="progressText2">0/1800000</div>
+        <button id="claim2" disabled>领取</button>
+    </div>
+    
+    <div id="challenge3" class="challenge">
+        <h3>🎯 挑战3-精准点击</h3>
+        <p>目标：成功点击80次 | 奖励：800金币</p>
+        <div class="progress-bar">
+            <div id="progress3" class="progress"></div>
+        </div>
+        <div id="progressText3">0/80</div>
+        <button id="claim3" disabled>领取</button>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <button class="test-btn" onclick="testClick()">🖱️ 模拟点击金币（挑战1）</button>
+        <button class="test-btn" onclick="testAccuracy()">🎯 模拟精准点击（挑战3）</button>
+        <button class="test-btn" onclick="testTime()">⏰ 模拟时间增加（挑战2）</button>
+        <button class="fix-btn" onclick="showRealStatus()">📊 显示真实状态</button>
+        <button class="fix-btn" onclick="applyQuickFix()">🔧 应用快速修复</button>
+    </div>
+    
+    <div id="output" class="status"></div>
+    
+    <script>
+        // 模拟真实的挑战数据
+        window.dailyChallenges = [
+            {
+                id: 'click_100',
+                title: '摸鱼新手',
+                type: 'click',
+                progress: 0,
+                target: 100,
+                reward: 500,
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 'time_30min',
+                title: '时间管理大师', 
+                type: 'time',
+                progress: 0,
+                target: 1800000,
+                reward: 1000,
+                completed: false,
+                claimed: false
+            },
+            {
+                id: 'accuracy_80',
+                title: '精准点击',
+                type: 'accuracy',
+                progress: 0,
+                target: 80,
+                reward: 800,
+                completed: false,
+                claimed: false
+            }
+        ];
+        
+        // ❌ 这是原始的有问题的函数 - 只更新数据，不更新显示！
+        window.updateChallengeProgress = function(type, value = 1) {
+            console.log(`🔄 updateChallengeProgress被调用 - 类型: ${type}, 值: ${value}`);
+            
+            let updated = false;
+            
+            dailyChallenges.forEach(challenge => {
+                if (challenge.type === type && !challenge.completed) {
+                    console.log(`📊 处理挑战: ${challenge.title} (${challenge.id})`);
+                    
+                    const originalProgress = challenge.progress;
+                    
+                    if (type === 'click') {
+                        challenge.progress += value;
+                    } else if (type === 'time') {
+                        challenge.progress = Math.min(challenge.progress + value, challenge.target);
+                    } else if (type === 'accuracy') {
+                        challenge.progress += value;
+                    }
+                    
+                    console.log(`📈 进度更新: ${originalProgress} → ${challenge.progress}/${challenge.target}`);
+                    
+                    if (challenge.progress >= challenge.target) {
+                        challenge.completed = true;
+                        console.log(`🎉 挑战完成: ${challenge.title}!`);
+                    }
+                    
+                    updated = true;
+                }
+            });
+            
+            // ❌ 问题就在这里！只保存数据，不更新DOM显示
+            if (updated) {
+                console.log('💾 保存挑战数据到localStorage');
+                localStorage.setItem('dailyChallenges', JSON.stringify(dailyChallenges));
+                console.log('⚠️  注意：未更新DOM显示 - 这就是问题所在！');
+            }
+            
+            return updated;
+        };
+        
+        // 测试函数
+        window.testClick = function() {
+            console.log('\n🧪 测试挑战1（点击）...');
+            updateChallengeProgress('click', 1);
+            addOutput('🖱️ 点击测试 - 数据已更新（但显示未变）', 'problem');
+        };
+        
+        window.testAccuracy = function() {
+            console.log('\n🧪 测试挑战3（精准）...');
+            updateChallengeProgress('accuracy', 1);
+            addOutput('🎯 精准测试 - 数据已更新（但显示未变）', 'problem');
+        };
+        
+        window.testTime = function() {
+            console.log('\n🧪 测试挑战2（时间）...');
+            updateChallengeProgress('time', 10000);
+            addOutput('⏰ 时间测试 - 数据已更新（但显示未变）', 'problem');
+        };
+        
+        // 显示真实状态（数据 vs 显示对比）
+        window.showRealStatus = function() {
+            console.log('\n📊 显示真实状态对比...');
+            let html = '<h4>🔍 数据 vs 显示对比：</h4>';
+            
+            dailyChallenges.forEach((challenge, index) => {
+                const displayElement = document.getElementById(`progressText${index + 1}`);
+                const displayText = displayElement ? displayElement.textContent : '元素不存在';
+                const dataText = `${challenge.progress}/${challenge.target}`;
+                
+                html += `<div style="margin: 10px 0; padding: 10px; background: ${dataText === displayText ? '#e8f5e8' : '#ffeaea'};">`;
+                html += `<strong>挑战${index + 1} (${challenge.id}):</strong><br>`;
+                html += `📊 实际数据: ${dataText}<br>`;
+                html += `🖥️ 页面显示: ${displayText}<br>`;
+                html += `<span style="color: ${dataText === displayText ? '#4CAF50' : '#f44336'}">`;
+                html += dataText === displayText ? '✅ 同步正常' : '❌ 不同步 - 显示未更新！';
+                html += '</span></div>';
+            });
+            
+            document.getElementById('output').innerHTML = html;
+        };
+        
+        // ✅ 快速修复函数 - 同步显示
+        window.applyQuickFix = function() {
+            console.log('\n🔧 应用快速修复...');
+            
+            dailyChallenges.forEach((challenge, index) => {
+                const progressText = document.getElementById(`progressText${index + 1}`);
+                const progressBar = document.getElementById(`progress${index + 1}`);
+                const claimBtn = document.getElementById(`claim${index + 1}`);
+                
+                if (progressText) {
+                    progressText.textContent = `${challenge.progress}/${challenge.target}`;
+                }
+                
+                if (progressBar) {
+                    const percentage = Math.min((challenge.progress / challenge.target) * 100, 100);
+                    progressBar.style.width = `${percentage}%`;
+                }
+                
+                if (claimBtn) {
+                    if (challenge.completed && !challenge.claimed) {
+                        claimBtn.disabled = false;
+                        claimBtn.style.background = '#4CAF50';
+                        claimBtn.textContent = '领取奖励';
+                    } else if (challenge.claimed) {
+                        claimBtn.disabled = true;
+                        claimBtn.style.background = '#9e9e9e';
+                        claimBtn.textContent = '已领取';
+                    }
+                }
+            });
+            
+            addOutput('✅ 快速修复完成！显示已同步', 'success');
+            showRealStatus(); // 显示修复后的对比
+        };
+        
+        // 辅助函数
+        function addOutput(message, type = '') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.style.margin = '5px 0';
+            div.style.padding = '8px';
+            div.style.background = type === 'problem' ? '#ffebee' : '#e8f5e8';
+            div.style.borderRadius = '4px';
+            div.innerHTML = message;
+            output.appendChild(div);
+            
+            // 限制输出数量
+            if (output.children.length > 5) {
+                output.removeChild(output.firstChild);
+            }
+        }
+        
+        // 初始化显示
+        window.onload = function() {
+            console.log('🎯 诊断测试页面已加载');
+            console.log('💡 点击测试按钮来模拟问题，然后点击"显示真实状态"查看数据vs显示对比');
+            showRealStatus();
+        };
+    </script>
+</body>
+</html>

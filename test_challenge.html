@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>挑战系统测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .challenge-item { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .progress-bar { width: 200px; height: 20px; background: #ddd; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #4CAF50; transition: width 0.3s; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .log { margin: 10px 0; padding: 10px; background: #f0f0f0; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>挑战系统测试</h1>
+    
+    <div class="test-section">
+        <h3>模拟点击测试</h3>
+        <button onclick="simulateCoinClick()">模拟金币点击</button>
+        <button onclick="resetChallenge()">重置挑战</button>
+        <button onclick="showChallengeData()">显示挑战数据</button>
+        <div id="clickCount">点击次数: 0</div>
+    </div>
+
+    <div class="test-section">
+        <h3>挑战状态</h3>
+        <div id="challengeStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>控制台日志</h3>
+        <div id="consoleLog"></div>
+    </div>
+
+    <script>
+        // 模拟挑战系统
+        let dailyChallenges = [];
+        let totalClicks = 0;
+        
+        const CHALLENGES = [
+            {
+                id: 'click_100',
+                title: '摸鱼新手',
+                description: '点击金币达到100次',
+                target: 100,
+                type: 'click'
+            }
+        ];
+
+        // 初始化挑战
+        function initTestChallenges() {
+            dailyChallenges = CHALLENGES.map(challenge => ({
+                ...challenge,
+                progress: 0,
+                completed: false,
+                claimed: false
+            }));
+            log('挑战系统已初始化');
+            updateDisplay();
+        }
+
+        // 更新挑战进度
+        function updateChallengeProgress(type, value = 1) {
+            log(`尝试更新挑战进度 - 类型: ${type}, 值: ${value}`);
+            let updated = false;
+            
+            dailyChallenges.forEach(challenge => {
+                if (challenge.type === type && !challenge.completed) {
+                    log(`找到匹配挑战: ${challenge.title}, 当前进度: ${challenge.progress}`);
+                    if (type === 'click') {
+                        challenge.progress += value;
+                        log(`点击挑战进度更新: ${challenge.progress}/${challenge.target}`);
+                    }
+                    
+                    if (challenge.progress >= challenge.target) {
+                        challenge.completed = true;
+                        log(`🎉 挑战完成: ${challenge.title}`);
+                    }
+                    
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                log('挑战进度已更新');
+            } else {
+                log('没有找到匹配的挑战类型');
+            }
+            
+            updateDisplay();
+        }
+
+        // 模拟金币点击
+        function simulateCoinClick() {
+            totalClicks++;
+            log(`金币被点击！总点击数：${totalClicks}`);
+            updateChallengeProgress('click', 1);
+            document.getElementById('clickCount').textContent = `点击次数: ${totalClicks}`;
+        }
+
+        // 重置挑战
+        function resetChallenge() {
+            totalClicks = 0;
+            initTestChallenges();
+            document.getElementById('clickCount').textContent = `点击次数: 0`;
+        }
+
+        // 显示挑战数据
+        function showChallengeData() {
+            log('当前挑战数据: ' + JSON.stringify(dailyChallenges, null, 2));
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            const statusDiv = document.getElementById('challengeStatus');
+            statusDiv.innerHTML = '';
+            
+            dailyChallenges.forEach(challenge => {
+                const progress = Math.min(challenge.progress / challenge.target * 100, 100);
+                const item = document.createElement('div');
+                item.className = 'challenge-item';
+                item.innerHTML = `
+                    <strong>${challenge.title}</strong><br>
+                    ${challenge.description}<br>
+                    进度: ${challenge.progress}/${challenge.target} (${progress.toFixed(1)}%)<br>
+                    状态: ${challenge.completed ? '✅ 已完成' : '⏳ 进行中'}
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                statusDiv.appendChild(item);
+            });
+        }
+
+        // 日志函数
+        function log(message) {
+            const logDiv = document.getElementById('consoleLog');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // 初始化
+        initTestChallenges();
+    </script>
+</body>
+</html>

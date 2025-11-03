@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最小化功能测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .main-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .control-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .control-btn:hover {
+            background: #0056b3;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>🪙 摸鱼金币测试</h1>
+        <p>这是一个最小化功能测试页面</p>
+        <div style="margin: 20px 0;">
+            <button class="control-btn" onclick="toggleMiniMode()">🔍 最小化</button>
+            <button class="control-btn" onclick="showNotification('测试通知')">显示通知</button>
+        </div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3>功能说明：</h3>
+            <ul>
+                <li>点击"最小化"按钮会隐藏主容器并显示最小化提示</li>
+                <li>在最小化提示中点击"恢复窗口"可以恢复主容器显示</li>
+                <li>控制台会输出详细的调试信息</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 窗口最小化功能
+        function toggleMiniMode() {
+            console.log('最小化按钮被点击');
+            
+            // 获取游戏容器（使用正确的类名）
+            const gameContainer = document.querySelector('.main-container');
+            if (!gameContainer) {
+                console.error('未找到游戏容器');
+                alert('未找到游戏容器，请检查页面结构');
+                return;
+            }
+            
+            console.log('找到游戏容器:', gameContainer);
+            console.log('当前显示状态:', gameContainer.style.display);
+            
+            // 检查是否已经最小化
+            if (gameContainer.style.display === 'none') {
+                console.log('游戏已经是隐藏状态，恢复显示');
+                gameContainer.style.display = 'block';
+                showNotification('🪙 摸鱼金币窗口已恢复');
+                return;
+            }
+            
+            try {
+                // 直接最小化 - 隐藏游戏容器
+                gameContainer.style.display = 'none';
+                console.log('游戏容器已隐藏');
+                
+                // 创建最小化提示
+                const minimizeIndicator = document.createElement('div');
+                minimizeIndicator.id = 'minimizeIndicator';
+                minimizeIndicator.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 30px;
+                    border-radius: 20px;
+                    text-align: center;
+                    z-index: 10000;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    border: 3px solid rgba(255, 215, 0, 0.8);
+                    font-family: Arial, sans-serif;
+                `;
+                
+                minimizeIndicator.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 10px;">🪙</div>
+                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">摸鱼金币</div>
+                        <div style="font-size: 16px; opacity: 0.9;">已最小化</div>
+                    </div>
+                    <button style="
+                        background: linear-gradient(45deg, #ff6b6b, #ffa500);
+                        color: white;
+                        border: none;
+                        padding: 15px 30px;
+                        border-radius: 25px;
+                        font-size: 18px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+                    " onclick="
+                        document.querySelector('.main-container').style.display = 'block';
+                        document.getElementById('minimizeIndicator').remove();
+                        showNotification('🪙 摸鱼金币窗口已恢复');
+                    ">恢复窗口</button>
+                `;
+                
+                document.body.appendChild(minimizeIndicator);
+                console.log('最小化提示已创建');
+                showNotification('🪙 摸鱼金币窗口已最小化');
+                
+            } catch (error) {
+                console.error('最小化功能出错:', error);
+                alert('最小化失败: ' + error.message);
+                showNotification('❌ 最小化失败，请重试');
+            }
+        }
+        
+        console.log('测试页面加载完成，最小化功能已就绪');
+    </script>
+</body>
+</html>

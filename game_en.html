@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摸鱼金币游戏</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            font-family: Arial, sans-serif; 
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        #coinCanvas { 
+            border: 3px solid #ffd700; 
+            border-radius: 15px; 
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+        }
+        .score-display {
+            font-size: 24px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .challenge-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .challenge-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .challenge-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .challenge-progress {
+            flex: 1;
+            margin: 0 15px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+        .challenge-reward {
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .control-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 摸鱼金币游戏</h1>
+        <div class="score-display">当前分数: <span id="score">0</span></div>
+        
+        <canvas id="coinCanvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <button class="control-button" onclick="startGame()">开始游戏</button>
+            <button class="control-button" onclick="pauseGame()">暂停</button>
+            <button class="control-button" onclick="resetGame()">重置</button>
+            <button class="control-button" onclick="testClick()">测试点击</button>
+        </div>
+        
+        <div class="challenge-panel">
+            <h3>📋 每日挑战</h3>
+            <div id="challenges"></div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let score = 0;
+        let coins = [];
+        let gameRunning = false;
+        let canvas, ctx;
+        let dailyChallenges = [];
+        let gameStartTime = Date.now();
+
+        // 初始化
+        window.onload = function() {
+            canvas = document.getElementById('coinCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // 初始化挑战
+            initChallenges();
+            updateChallengesDisplay();
+            
+            // 设置画布点击事件
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // 开始游戏循环
+            gameLoop();
+        };
+
+        // 初始化挑战
+        function initChallenges() {
+            dailyChallenges = [
+                {
+                    id: 'click_100',
+                    title: '摸鱼新手',
+                    description: '点击金币达到100次',
+                    icon: '🎯',
+                    target: 100,
+                    reward: 500,
+                    type: 'click',
+                    progress: 0,
+                    completed: false,
+                    claimed: false
+                },
+                {
+                    id: 'time_30min',
+                    title: '时间管理大师',
+                    description: '累计摸鱼30分钟',
+                    icon: '⏰',
+                    target: 30 * 60 * 1000,
+                    reward: 1000,
+                    type: 'time',
+                    progress: 0,
+                    completed: false,
+                    claimed: false
+                },
+                {
+                    id: 'accuracy_80',
+                    title: '精准点击',
+                    description: '成功点击金币80次',
+                    icon: '🎯',
+                    target: 80,
+                    reward: 800,
+                    type: 'accuracy',
+                    progress: 0,
+                    completed: false,
+                    claimed: false
+                }
+            ];
+            
+            // 从本地存储加载进度
+            loadChallengeProgress();
+        }
+
+        // 更新挑战显示
+        function updateChallengesDisplay() {
+            const challengesDiv = document.getElementById('challenges');
+            challengesDiv.innerHTML = '';
+            
+            dailyChallenges.forEach(challenge => {
+                const progress = Math.min(challenge.progress, challenge.target);
+                const percentage = (progress / challenge.target * 100).toFixed(1);
+                
+                const challengeDiv = document.createElement('div');
+                challengeDiv.className = 'challenge-item';
+                challengeDiv.innerHTML = `
+                    <div class="challenge-icon">${challenge.icon}</div>
+                    <div class="challenge-progress">
+                        <div><strong>${challenge.title}</strong> - ${challenge.description}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div>进度: ${progress}/${challenge.target} (${percentage}%)</div>
+                    </div>
+                    <div class="challenge-reward">奖励: ${challenge.reward}分</div>
+                `;
+                challengesDiv.appendChild(challengeDiv);
+            });
+        }
+
+        // 更新挑战进度
+        function updateChallengeProgress(type, amount) {
+            let updated = false;
+            
+            dailyChallenges.forEach(challenge => {
+                if (challenge.type === type && !challenge.completed) {
+                    challenge.progress += amount;
+                    
+                    if (challenge.progress >= challenge.target) {
+                        challenge.completed = true;
+                        challenge.progress = challenge.target;
+                        
+                        // 发放奖励
+                        score += challenge.reward;
+                        updateScore(0); // 只更新显示
+                        
+                        console.log(`🎉 挑战完成: ${challenge.title}! 获得奖励: ${challenge.reward}分`);
+                    }
+                    
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                saveChallengeProgress();
+                updateChallengesDisplay();
+                console.log(`📊 挑战进度更新: ${type} +${amount}`);
+            }
+        }
+
+        // 保存挑战进度
+        function saveChallengeProgress() {
+            localStorage.setItem('dailyChallenges', JSON.stringify(dailyChallenges));
+        }
+
+        // 加载挑战进度
+        function loadChallengeProgress() {
+            const saved = localStorage.getItem('dailyChallenges');
+            if (saved) {
+                dailyChallenges = JSON.parse(saved);
+            }
+        }
+
+        // 更新分数
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').textContent = score;
+        }
+
+        // 处理画布点击
+        function handleCanvasClick(e) {
+            if (!gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            let coinClicked = false;
+            
+            // 检查是否点击到金币
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                const distance = Math.sqrt(Math.pow(clickX - coin.x, 2) + Math.pow(clickY - coin.y, 2));
+                
+                if (distance < coin.size) {
+                    // 点击到金币
+                    coinClicked = true;
+                    coins.splice(i, 1);
+                    
+                    // 更新分数和挑战进度
+                    updateScore(10);
+                    updateChallengeProgress('click', 1);
+                    updateChallengeProgress('accuracy', 1);
+                    
+                    console.log('💰 成功点击金币！分数+10');
+                    break;
+                }
+            }
+            
+            if (!coinClicked) {
+                console.log('❌ 未点击到金币');
+            }
+        }
+
+        // 生成金币
+        function generateCoin() {
+            if (!gameRunning) return;
+            
+            const coin = {
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: Math.random() * (canvas.height - 40) + 20,
+                size: 20,
+                color: '#FFD700',
+                rotation: 0
+            };
+            
+            coins.push(coin);
+        }
+
+        // 绘制金币
+        function drawCoins() {
+            coins.forEach(coin => {
+                ctx.save();
+                ctx.translate(coin.x, coin.y);
+                ctx.rotate(coin.rotation);
+                
+                // 绘制金币
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
+                ctx.fillStyle = coin.color;
+                ctx.fill();
+                
+                // 添加光泽效果
+                ctx.beginPath();
+                ctx.arc(-coin.size/3, -coin.size/3, coin.size/3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // 旋转动画
+                coin.rotation += 0.02;
+            });
+        }
+
+        // 游戏循环
+        function gameLoop() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制金币
+            drawCoins();
+            
+            // 更新挑战时间
+            if (gameRunning) {
+                const elapsed = Date.now() - gameStartTime;
+                updateChallengeProgress('time', elapsed);
+                gameStartTime = Date.now(); // 重置时间基准
+            }
+            
+            // 继续循环
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 开始游戏
+        function startGame() {
+            gameRunning = true;
+            gameStartTime = Date.now();
+            console.log('🎮 游戏开始！');
+            
+            // 定期生成金币
+            setInterval(() => {
+                if (gameRunning && coins.length < 5) {
+                    generateCoin();
+                }
+            }, 2000);
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            gameRunning = false;
+            console.log('⏸️ 游戏暂停');
+        }
+
+        // 重置游戏
+        function resetGame() {
+            score = 0;
+            coins = [];
+            gameRunning = false;
+            updateScore(0);
+            
+            // 重置挑战进度（但保留已完成的奖励）
+            dailyChallenges.forEach(challenge => {
+                if (!challenge.completed) {
+                    challenge.progress = 0;
+                }
+            });
+            
+            saveChallengeProgress();
+            updateChallengesDisplay();
+            console.log('🔄 游戏重置');
+        }
+
+        // 测试点击
+        function testClick() {
+            if (!gameRunning) {
+                console.log('❌ 游戏未开始，无法测试点击');
+                return;
+            }
+            
+            // 在画布中心生成一个测试金币
+            const testCoin = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                size: 25,
+                color: '#FF6B6B',
+                rotation: 0
+            };
+            
+            coins.push(testCoin);
+            console.log('🧪 测试金币已生成在画布中心，请点击它测试功能');
+        }
+
+        // 控制台日志
+        console.log('🎮 摸鱼金币游戏已加载');
+        console.log('📋 使用说明：');
+        console.log('1. 点击【开始游戏】开始');
+        console.log('2. 点击金币获得分数和挑战进度');
+        console.log('3. 完成挑战获得额外奖励');
+        console.log('4. 使用【测试点击】生成测试金币');
+        console.log('');
+        console.log('💡 挑战系统：');
+        console.log('- 摸鱼新手：点击100次金币');
+        console.log('- 时间管理大师：累计30分钟');
+        console.log('- 精准点击：成功点击80次金币');
+    </script>
+</body>
+</html>

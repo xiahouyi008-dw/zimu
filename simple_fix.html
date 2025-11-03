@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一键修复挑战系统</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 { margin-bottom: 30px; font-size: 2.5em; }
+        .fix-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+        }
+        .fix-button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76,175,80,0.6);
+        }
+        .fix-button:active { transform: translateY(0); }
+        .status { 
+            margin: 30px 0; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            font-size: 18px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .test-button {
+            background: #2196F3;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 挑战系统修复工具</h1>
+        
+        <div class="instructions">
+            <h3>📋 使用说明：</h3>
+            <ol>
+                <li><strong>第一步：</strong>点击下面的【🔧 一键修复】按钮</li>
+                <li><strong>第二步：</strong>修复完成后，点击【🎮 打开游戏】</li>
+                <li><strong>第三步：</strong>在游戏里点击金币测试挑战进度</li>
+                <li><strong>第四步：</strong>回到此页面查看测试结果</li>
+            </ol>
+        </div>
+
+        <button class="fix-button" onclick="applyFix()">🔧 一键修复</button>
+        <button class="fix-button" onclick="openGame()" style="background: #ff9800;">🎮 打开游戏</button>
+        
+        <div id="status" class="status">点击【一键修复】开始</div>
+        
+        <div class="test-buttons">
+            <button class="test-button" onclick="testClick()">💰 测试点击</button>
+            <button class="test-button" onclick="testAccuracy()">🎯 测试精准</button>
+            <button class="test-button" onclick="showStatus()">📊 查看状态</button>
+        </div>
+    </div>
+
+    <script>
+        let gameWindow = null;
+        let fixApplied = false;
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            if (type === 'success') {
+                status.style.background = 'rgba(76,175,80,0.3)';
+            } else if (type === 'error') {
+                status.style.background = 'rgba(244,67,54,0.3)';
+            } else {
+                status.style.background = 'rgba(255,255,255,0.2)';
+            }
+        }
+
+        function applyFix() {
+            updateStatus('🔄 正在应用修复...', 'info');
+            
+            // 创建修复脚本
+            const fixScript = `
+                // 🚀 挑战系统一键修复
+                console.log('🔄 开始一键修复挑战系统...');
+                
+                // 确保挑战数据存在
+                if (!window.dailyChallenges) {
+                    console.log('❌ 挑战数据未初始化');
+                    return;
+                }
+                
+                // ✅ 重写updateChallengeProgress函数
+                window.updateChallengeProgress = function(type, value = 1) {
+                    console.log('🔄 更新挑战进度:', type, '+', value);
+                    
+                    let updated = false;
+                    let completedChallenge = null;
+                    
+                    window.dailyChallenges.forEach(challenge => {
+                        if (challenge.type === type && !challenge.completed) {
+                            challenge.progress += value;
+                            
+                            if (challenge.progress >= challenge.target) {
+                                challenge.completed = true;
+                                completedChallenge = challenge;
+                                console.log('🎉 挑战完成:', challenge.title);
+                            }
+                            
+                            updated = true;
+                        }
+                    });
+                    
+                    if (updated) {
+                        localStorage.setItem('dailyChallenges', JSON.stringify(window.dailyChallenges));
+                        
+                        // ✅ 立即更新显示
+                        updateChallengeDisplay();
+                        
+                        if (completedChallenge) {
+                            setTimeout(() => {
+                                if (typeof showNotification === 'function') {
+                                    showNotification('🎉 挑战完成: ' + completedChallenge.title, 'achievement');
+                                }
+                            }, 500);
+                        }
+                    }
+                    
+                    return updated;
+                };
+                
+                // ✅ 确保显示函数存在
+                if (typeof window.updateChallengeDisplay !== 'function') {
+                    window.updateChallengeDisplay = function() {
+                        console.log('🔄 更新挑战显示...');
+                        
+                        window.dailyChallenges.forEach((challenge, index) => {
+                            const challengeNum = index + 1;
+                            const progressText = document.getElementById('progressText' + challengeNum);
+                            const progressBar = document.getElementById('progress' + challengeNum);
+                            
+                            if (progressText) {
+                                progressText.textContent = challenge.progress + '/' + challenge.target;
+                            }
+                            if (progressBar) {
+                                const percentage = (challenge.progress / challenge.target) * 100;
+                                progressBar.style.width = percentage + '%';
+                            }
+                        });
+                    };
+                }
+                
+                console.log('✅ 修复完成！点击金币测试效果');
+            `;
+            
+            // 保存修复脚本到本地存储
+            localStorage.setItem('challengeFix', fixScript);
+            
+            updateStatus('✅ 修复已准备完成！点击【打开游戏】应用修复', 'success');
+            fixApplied = true;
+        }
+
+        function openGame() {
+            try {
+                gameWindow = window.open('/摸鱼金币.html', 'game', 'width=1200,height=800');
+                
+                // 等待游戏加载后注入修复
+                setTimeout(() => {
+                    if (gameWindow && !gameWindow.closed) {
+                        const script = gameWindow.document.createElement('script');
+                        script.textContent = localStorage.getItem('challengeFix') || '';
+                        gameWindow.document.head.appendChild(script);
+                        updateStatus('✅ 修复已应用到游戏！现在点击金币测试', 'success');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                updateStatus('❌ 无法打开游戏，请手动访问 http://localhost:3000/摸鱼金币.html', 'error');
+            }
+        }
+
+        function testClick() {
+            if (gameWindow && !gameWindow.closed) {
+                const script = gameWindow.document.createElement('script');
+                script.textContent = 'updateChallengeProgress("click", 1); console.log("💰 点击测试+1");';
+                gameWindow.document.head.appendChild(script);
+                updateStatus('💰 已发送点击测试', 'success');
+            } else {
+                updateStatus('❌ 请先打开游戏', 'error');
+            }
+        }
+
+        function testAccuracy() {
+            if (gameWindow && !gameWindow.closed) {
+                const script = gameWindow.document.createElement('script');
+                script.textContent = 'updateChallengeProgress("accuracy", 1); console.log("🎯 精准测试+1");';
+                gameWindow.document.head.appendChild(script);
+                updateStatus('🎯 已发送精准测试', 'success');
+            } else {
+                updateStatus('❌ 请先打开游戏', 'error');
+            }
+        }
+
+        function showStatus() {
+            if (gameWindow && !gameWindow.closed) {
+                const script = gameWindow.document.createElement('script');
+                script.textContent = `
+                    if (window.dailyChallenges) {
+                        console.log('📊 当前挑战状态:');
+                        window.dailyChallenges.forEach((c, i) => {
+                            console.log(\`挑战\${i+1}: \${c.title} - \${c.progress}/\${c.target}\`);
+                        });
+                    }
+                `;
+                gameWindow.document.head.appendChild(script);
+                updateStatus('📊 状态已发送到控制台', 'success');
+            } else {
+                updateStatus('❌ 请先打开游戏', 'error');
+            }
+        }
+
+        // 页面加载提示
+        window.onload = function() {
+            updateStatus('🚀 准备就绪！点击【一键修复】开始');
+        };
+    </script>
+</body>
+</html>

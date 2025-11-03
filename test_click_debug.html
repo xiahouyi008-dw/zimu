@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点击测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        #testCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 5;
+            border: 2px solid red;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        #debugInfo {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        
+        .overlay-test {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 0, 0.1);
+            z-index: 10;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="debugInfo">
+        <div>点击状态: <span id="clickStatus">等待点击</span></div>
+        <div>点击次数: <span id="clickCount">0</span></div>
+        <div>Canvas透明度: <span id="canvasOpacity">1</span></div>
+        <div>Canvas z-index: <span id="canvasZIndex">5</span></div>
+    </div>
+    
+    <canvas id="testCanvas"></canvas>
+    
+    <!-- 测试覆盖层 -->
+    <div class="overlay-test" id="overlayTest"></div>
+    
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        const debugInfo = document.getElementById('debugInfo');
+        const clickStatus = document.getElementById('clickStatus');
+        const clickCount = document.getElementById('clickCount');
+        const canvasOpacity = document.getElementById('canvasOpacity');
+        const canvasZIndex = document.getElementById('canvasZIndex');
+        
+        let clicks = 0;
+        
+        // 设置canvas尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawTestContent();
+        }
+        
+        // 绘制测试内容
+        function drawTestContent() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制一些测试金币
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('点击我！', canvas.width / 2, canvas.height / 2 + 5);
+        }
+        
+        // 点击事件测试
+        canvas.addEventListener('click', function(e) {
+            clicks++;
+            clickCount.textContent = clicks;
+            clickStatus.textContent = '点击成功！';
+            clickStatus.style.color = '#00ff00';
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 绘制点击效果
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            setTimeout(() => {
+                clickStatus.textContent = '等待点击';
+                clickStatus.style.color = 'white';
+                drawTestContent();
+            }, 1000);
+            
+            console.log('Canvas clicked at:', x, y);
+        });
+        
+        // 检查canvas属性
+        function updateCanvasInfo() {
+            const computedStyle = window.getComputedStyle(canvas);
+            canvasOpacity.textContent = computedStyle.opacity;
+            canvasZIndex.textContent = computedStyle.zIndex;
+        }
+        
+        // 窗口调整
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 初始化
+        resizeCanvas();
+        updateCanvasInfo();
+        
+        // 定期检查
+        setInterval(updateCanvasInfo, 1000);
+        
+        console.log('点击测试页面已加载');
+        console.log('Canvas element:', canvas);
+        console.log('Canvas style:', window.getComputedStyle(canvas));
+    </script>
+</body>
+</html>
