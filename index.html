@@ -748,6 +748,47 @@
             box-shadow: 
                 0 6px 24px rgba(108, 92, 231, 0.3),
                 0 0 30px rgba(162, 155, 254, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 250px;
+            max-width: 400px;
+            word-wrap: break-word;
+        }
+        
+        /* 通知消息内容 */
+        .notification-message {
+            flex: 1;
+            margin-right: 12px;
+            line-height: 1.4;
+        }
+        
+        /* 通知关闭按钮 */
+        .notification-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .notification-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .notification-close:active {
+            transform: scale(0.95);
+        }
             border: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 12px;
             max-width: 250px;
@@ -1363,6 +1404,15 @@
                 max-width: 200px;
                 font-size: 11px;
                 padding: 10px 14px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .notification-close {
+                width: 20px;
+                height: 20px;
+                font-size: 14px;
             }
             
             .sound-controls {
@@ -1413,6 +1463,15 @@
                 max-width: 250px;
                 font-size: 12px;
                 padding: 10px 14px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .notification-close {
+                width: 20px;
+                height: 20px;
+                font-size: 14px;
             }
             
             .coin-collect-effect {
@@ -4463,7 +4522,13 @@
         // 显示事件通知
         function showEventNotification(message, eventType = 'default') {
             const element = document.getElementById('eventNotification');
-            element.textContent = message;
+            
+            // 添加关闭按钮
+            element.innerHTML = `
+                <span class="notification-message">${message}</span>
+                <button class="notification-close">×</button>
+            `;
+            
             element.style.display = 'block';
             
             // 根据事件类型设置不同的样式
@@ -4474,9 +4539,19 @@
                 element.classList.add('powerup-end-notification');
             }
             
-            setTimeout(() => {
+            // 添加关闭按钮点击事件
+            const closeBtn = element.querySelector('.notification-close');
+            closeBtn.addEventListener('click', function() {
                 element.style.display = 'none';
                 element.className = 'event-notification'; // 重置样式
+            });
+            
+            setTimeout(() => {
+                // 只有在通知仍显示时才执行隐藏
+                if (element.style.display === 'block') {
+                    element.style.display = 'none';
+                    element.className = 'event-notification'; // 重置样式
+                }
             }, 3000);
             
             // 播放事件音效
@@ -6688,7 +6763,13 @@
         // 显示通知函数（缺失的函数）
         function showNotification(message, notificationType = 'default') {
             const element = document.getElementById('eventNotification');
-            element.textContent = message;
+            
+            // 添加关闭按钮
+            element.innerHTML = `
+                <span class="notification-message">${message}</span>
+                <button class="notification-close">×</button>
+            `;
+            
             element.style.display = 'block';
             
             // 根据通知类型设置不同的样式
@@ -6697,9 +6778,19 @@
                 element.classList.add('achievement-notification');
             }
             
-            setTimeout(() => {
+            // 添加关闭按钮点击事件
+            const closeBtn = element.querySelector('.notification-close');
+            closeBtn.addEventListener('click', function() {
                 element.style.display = 'none';
                 element.className = 'event-notification'; // 重置样式
+            });
+            
+            setTimeout(() => {
+                // 只有在通知仍显示时才执行隐藏
+                if (element.style.display === 'block') {
+                    element.style.display = 'none';
+                    element.className = 'event-notification'; // 重置样式
+                }
             }, 3000);
             
             // 播放事件音效
