@@ -2525,9 +2525,12 @@
         
         <!-- 生命值系统 -->
         <div class="health-system">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span>❤️ 生命值</span>
-                <span id="healthText">100 / 100</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>❤️ 生命值</span>
+                    <span id="healthText">100 / 100</span>
+                </div>
+                <button onclick="closeHealthSystem()" style="background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; font-size: 18px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" title="关闭生命值显示">×</button>
             </div>
             <div class="health-bar-container">
                 <div class="health-bar" id="healthBar"></div>
@@ -2598,9 +2601,12 @@
         
         <!-- 生命值系统 -->
         <div class="health-system">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span>❤️ 生命值</span>
-                <span id="healthText">100 / 100</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>❤️ 生命值</span>
+                    <span id="healthText">100 / 100</span>
+                </div>
+                <button onclick="closeHealthSystem()" style="background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; font-size: 18px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" title="关闭生命值显示">×</button>
             </div>
             <div class="health-bar-container">
                 <div class="health-bar" id="healthBar"></div>
@@ -5329,6 +5335,41 @@
                 alert('关闭数据面板失败: ' + error.message);
                 showEventNotification('❌ 关闭数据面板失败');
                 console.log('=== 关闭数据面板功能失败 ===');
+            }
+        }
+
+        // 关闭生命值系统功能
+        function closeHealthSystem() {
+            console.log('=== 关闭生命值系统功能 ===');
+            console.log('1. 生命值关闭按钮被点击');
+            
+            // 获取所有生命值系统元素
+            const healthSystems = document.querySelectorAll('.health-system');
+            
+            if (healthSystems.length === 0) {
+                console.error('❌ 未找到生命值系统');
+                alert('未找到生命值系统');
+                return;
+            }
+            
+            console.log('✅ 找到生命值系统数量:', healthSystems.length);
+            
+            try {
+                // 隐藏所有生命值系统
+                healthSystems.forEach(system => {
+                    system.style.display = 'none';
+                    console.log('✅ 生命值系统已关闭:', system);
+                });
+                
+                showEventNotification('❤️ 所有生命值显示已关闭');
+                console.log('3. ✅ 所有生命值系统已关闭');
+                console.log('=== 关闭生命值系统功能完成 ===');
+                
+            } catch (error) {
+                console.error('❌ 关闭生命值系统功能出错:', error);
+                alert('关闭生命值系统失败: ' + error.message);
+                showEventNotification('❌ 关闭生命值系统失败');
+                console.log('=== 关闭生命值系统功能失败 ===');
             }
         }
 
