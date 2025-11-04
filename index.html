@@ -6685,6 +6685,27 @@
             return null;
         }
 
+        // 显示通知函数（缺失的函数）
+        function showNotification(message, notificationType = 'default') {
+            const element = document.getElementById('eventNotification');
+            element.textContent = message;
+            element.style.display = 'block';
+            
+            // 根据通知类型设置不同的样式
+            element.className = 'event-notification';
+            if (notificationType === 'achievement') {
+                element.classList.add('achievement-notification');
+            }
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+                element.className = 'event-notification'; // 重置样式
+            }, 3000);
+            
+            // 播放事件音效
+            playEventSound(notificationType);
+        }
+
         function generateLeaderboardData() {
             // 首先尝试从本地存储加载数据
             const savedData = loadLeaderboardData();
@@ -6696,7 +6717,7 @@
             const currentPlayerData = {
                 name: '你',
                 score: totalIncome,
-                level: currentLevel,
+                level: playerLevel, // 修复：将currentLevel改为playerLevel
                 clicks: totalClicks,
                 accuracy: totalAttempts > 0 ? ((totalClicks / totalAttempts) * 100).toFixed(1) : '0.0',
                 playTime: totalPlayTime * 60,
